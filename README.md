@@ -103,7 +103,7 @@ tmsh save sys config
 reboot
 ```
 
-### Discovery Script to add settings.json file creation:
+## Discovery Script to aid settings.json file creation:
 * f5-vip-discovery.py is a helper script that uses the OCI API to discover all the OCIDs for vnic, and private ip objects.
 * The script also attempts to build a settings.json file that is appropriate.
     * If the automatically generated settings.json is not ideal, you can still use the script to get all the required OCIDs you need to create your own settings.json
