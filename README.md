@@ -35,15 +35,14 @@ tmsh save sys config
 * This script has been developed by Oracle for OCI BIG-IP failover using Instance Principals.
     * Updated script has since been modified by F5 to support additional functionality, such as multiple VNICs.
     * Updated script uses a rather large python environment with OCI libraries to interact with API using instance principal authentication.
-    * Can be downloaded from here: https://objectstorage.us-phoenix-1.oraclecloud.com/p/a0lUzZzoDYsTmhBwH9Z2yZLqTQr0TnhNfOYfbYUuM5cLxhRNwZAnHKq-DLMQSEME/n/ax90yzqu3bdx/b/hermsdorfer_catchall/o/oci-f5-failover_v1.3.tar.gz
-        * Note: this link expires: 01-Jan-2023
+    * Can be downloaded from here: https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
 * Note: The configuration will be unique per BIG-IP.
 
 ### Install Commands:
 ```
 cd /config/failover/
-curl -o oci-f5-failover_v1.3.tar.gz https://objectstorage.us-phoenix-1.oraclecloud.com/p/a0lUzZzoDYsTmhBwH9Z2yZLqTQr0TnhNfOYfbYUuM5cLxhRNwZAnHKq-DLMQSEME/n/ax90yzqu3bdx/b/hermsdorfer_catchall/o/oci-f5-failover_v1.3.tar.gz
-tar -xzf oci-f5-failover_f5-vip.tar.gz
+curl -o oci-f5-failover_v1.4.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
+tar -xzf oci-f5-failover_v1.4.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
 vi /config/failover/f5-vip/settings.json
