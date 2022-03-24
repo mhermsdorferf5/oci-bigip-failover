@@ -1,0 +1,29 @@
+{
+    "topic_id": "null",
+    "multiprocess": "on",
+    "vnics": [ 
+        { 
+            "name": "external",
+            "move_to_vnic": "ocid1.vnic.oc1.phx.abyhqljrvp57t35fz6rlfcx2fqzbdlvqtvj755twrdhq2rkfvhecnbl5y7jq",
+            "ip_to_move": [ 
+                "ocid1.privateip.oc1.phx.aaaaaaaakvdcypwjn3fjiwt4obf2wawerv66rrn2wulsnmo2t34jkmdgt73a",
+                "ocid1.privateip.oc1.phx.aaaaaaaaxrvo6pvew3wdko436jfbxymmddexxtevvpfhrgieczajpwe3qmnq",
+                "ocid1.privateip.oc1.phx.aaaaaaaahger7g5rtteosh4sk7cn3qw2j756imnuneiqjlpvnirrgxf5lx5q"
+            ]
+        },
+        { 
+            "name": "internal",
+            "move_to_vnic": "ocid1.vnic.oc1.phx.anyhqljrszvyosac7xutgnffxf5k3zlbf6x7vrmjkj4bmgct65mvjdrjiw2q",
+            "ip_to_move": [
+                "ocid1.privateip.oc1.phx.aaaaaaaac7gjtdk3z2izlevodfz745dsnpouzb5vusmxzilkzv2f4gwbobua"
+            ]
+        },
+        { 
+            "name": "foo",
+            "move_to_vnic": "ocid1.vnic.oc1.phx.abuw4ljrlsfiqw6vzzxb43vyypt4pkodawglp3wqxjqofakrwvou52gb6s5a",
+            "ip_to_move": [ 
+                "ocid1.privateip.oc1.phx.aaaaaaaaba3pv6wkcr4jqae5f44n2b2m2yt2j6rx32uzr4h25vqstifsfdsq"
+            ]
+        }
+  ]
+}

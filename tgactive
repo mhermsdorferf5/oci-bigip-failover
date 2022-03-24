@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# NOTE:
+# This file will be installed in /config/failover/tgactive and it will
+# be called by /usr/lib/failover/f5tgactive
+#
+# - This file is for customer additions for tasks
+#   to be performed when failover goes to active state.
+#
+# - Refer to /usr/lib/failover/f5tgactive for more information
+#
+
+source /config/failover/f5-vip/venv/bin/activate
+python /config/failover/f5-vip/f5-vip.py
