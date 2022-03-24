@@ -41,7 +41,7 @@ tmsh save sys config
 ### Install Commands:
 ```
 cd /config/failover/
-curl -o oci-f5-failover_v1.4.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
+curl -L -o oci-f5-failover_v1.4.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
 tar -xzf oci-f5-failover_v1.4.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
