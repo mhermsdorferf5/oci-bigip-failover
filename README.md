@@ -2,7 +2,17 @@
 
 Note, this is for OCI failover with Instance Principals, for standard OCI failover please use the scripts located here: https://github.com/f5devcentral/f5-oci-failover
 
-## Instance Principal setup:
+* Legacy failover scripts & instructions:
+    * Code: https://github.com/f5devcentral/f5-oci-failover
+    * Instructions: https://clouddocs.f5.com/cloud/public/v1/oracle/oracle_deploy.html#oci-ha
+    * Note: This does not use instance principals for authentication to OCI API.
+* This script has been developed by Oracle for OCI BIG-IP failover using Instance Principals.
+    * Updated script has since been modified by F5 to support additional functionality, such as multiple VNICs.
+    * Updated script uses a rather large python environment with OCI libraries to interact with API using instance principal authentication.
+    * Can be downloaded from here: https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
+* Note: You will need to generate a configuration file that will be unique per BIG-IP.
+
+## OCI Instance Principal setup:
 * These failover scripts run on the BIG-IP instances running in the OCI environment.  They use OCI “Instance Principal” credentials to interact with the OCI API and perform the failover calls to move OCI IP addresses.  By default, instance principal accounts have no authorization, they’re granted authorization to the OCI API by the creation of IAM Dynamic Groups & Matching Rules which apply IAM Policies that grant access.
 * You'll need to create IAM Dynamic Groups & Matching rules that match the OCI instances and assign a IAM Policy to them.
 * The IAM Policy will define what permissions the OCI has for it's interactions with the OCI API.
@@ -26,18 +36,6 @@ tmsh save sys config
 ```
 
 
-## Download OCI Failover scripts & Install:
-* Legacy failover scripts & instructions:
-    * Code: https://github.com/f5devcentral/f5-oci-failover
-    * Instructions: https://clouddocs.f5.com/cloud/public/v1/oracle/oracle_deploy.html#oci-ha
-    * Note: This does not use instance principals for authentication to OCI API.
-    * Note: that selinux restorecon needs to be used to restore selinux permissions across the failover files.
-* This script has been developed by Oracle for OCI BIG-IP failover using Instance Principals.
-    * Updated script has since been modified by F5 to support additional functionality, such as multiple VNICs.
-    * Updated script uses a rather large python environment with OCI libraries to interact with API using instance principal authentication.
-    * Can be downloaded from here: https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
-* Note: The configuration will be unique per BIG-IP.
-
 ### Install Commands:
 ```
 cd /config/failover/
@@ -52,10 +50,12 @@ vi /config/failover/f5-vip/settings.json
 ### Update the settings file with approprate configuration, see example below:
 * topic_id: This can either be "null" in which case no messages will be sent, or it can be the OCID for a Topic created in the notification section of OCI.  Useful for having other OCI consumer applications learn when failover happens.
 * multiprocess: on/off, multiprocess on enables faster failover by having multiple processes execute teh API calls in parallel.
+* timeout_seconds: Timeout in seconds for how long allow retry attempts if the first attempt to move the IP failed.
 * vnics: An array of one or more vnics to failover IPs on.
     * name: simple identifier to make reading the config easier, not used for anything.
     * move_to_vnic: This should be the OCID of the local VNIC on which floating IP addresses live.
     * ip_to_move: An array of one or more private IPs that float between the BIG-IPs and need to be moved upon failover.
+* See Discovery Script section below for a helpful script to aid in the generation of this json config file.
 
 ```json
 {
@@ -113,7 +113,7 @@ cd /config/failover/f5-vip/
 ```
 
 Example output:
-```json
+```
 [root@hermsdorfer-iperf-bigip-1:Active:Changes Pending] f5-vip # ./run-discovery.sh
 Hostname: hermsdorfer-iperf-bigip-1
 Instance ID: ocid1.instance.oc1.phx.anyhqljrszvyosac3xo5e5dmvev3thpaxrl3v2xybivj27c6a7rzpok6j76q
