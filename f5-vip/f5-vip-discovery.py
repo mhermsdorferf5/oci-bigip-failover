@@ -2,12 +2,13 @@
 # description: F5 Failover OCI Discovery Script
 # author: m.hermsdorfer@f5.com
 # date: 18-Jan-2022
-# version: 1.2
-# Updated: 23-Mar-2022
+# version: 1.3
+# Updated: 25-Mar-2022
 # Updates:
 # 1.0: Initial release.
 # 1.1: m.hermsdorfer@f5.com - 23-Mar-2022: added example settings.json
 # 1.2: m.hermsdorfer@f5.com - 25-Mar-2022: added ability to write out settings.json with -w argument.
+# 1.3: m.hermsdorfer@f5.com - 25-Mar-2022: added ability consume active settings.json with -a argument, in order to build standby settings.json.
 # =====================================
 import requests
 import json
@@ -28,7 +29,7 @@ def get_current_metadata(type):
     call_attempts = 0
     while call_attempts < 2:
         try:
-            response = requests.get(uri, headers=signer.METADATA_AUTH_HEADERS)
+            response = requests.get(uri, headers=signer.METADATA_AUTH_HEADERS, timeout=10)
         except Exception as e:
             print('Script failed to get instance metadata, check routing to ensure request leaves primary instance VNIC & Security Groups are in-place: ' + str(e))
             sys.exit(1)
@@ -48,7 +49,7 @@ def get_bigip_interfaces():
 
     call_attempts = 0
     while call_attempts < 2:
-        response = requests.get(uri, auth=('admin', 'admin'))
+        response = requests.get(uri, auth=('admin', 'admin'), timeout=10)
         if response.ok:
             json_object = json.loads(response.content)
             json_text = json.dumps(json_object)
@@ -57,7 +58,7 @@ def get_bigip_interfaces():
         else:
             response.raise_for_status()
 
-def main(writeSettingsFile, activeSettingsFile):
+def main(writeSettingsFile, activeSettingsFileName):
     example_settings_json = {}
     example_settings_json['topic_id']="null"
     example_settings_json['multiprocess']="off"
@@ -70,18 +71,19 @@ def main(writeSettingsFile, activeSettingsFile):
     print("Instance ID: " + my_instance_metadata["id"])
     print("VNIC Count: " + str(len(my_instance_vnic_metadata)))
     try:
-        network_client = oci.core.VirtualNetworkClient(config={}, signer=signer)
+        network_client = oci.core.VirtualNetworkClient(config={}, signer=signer, timeout=10)
     except Exception as e:
         print('Script failed to talk to OCI API, check routing to ensure request leaves primary instance VNIC & Security Groups are in-place: ' + str(e))
         sys.exit(1)
+    vnic_list = []
     for vnic in my_instance_vnic_metadata:
         vnic_id = vnic['vnicId']
-        primaryIP = vnic['privateIp']
         try:
             vnicDetails = network_client.get_vnic(vnic_id).data
         except Exception as e:
             print('Script failed to talk to OCI API, check routing to ensure request leaves primary instance VNIC & Security Groups are in-place: ' + str(e))
             sys.exit(1)
+        subnet_id = vnicDetails.subnet_id
         vnic_name = vnicDetails.display_name
         try:
             private_ips = network_client.list_private_ips(vnic_id=vnic_id).data
@@ -91,6 +93,7 @@ def main(writeSettingsFile, activeSettingsFile):
         print("\n    VNIC: " + vnic['vnicId'])
         print("        MAC Addr: " + vnic['macAddr'])
         print("        VNIC Name: " + vnic_name)
+        print("        Subnet ID: " + subnet_id)
         example_config_vnics = {}
         example_config_vnics['ip_to_move'] = []
         example_config_vnics['move_to_vnic'] = vnic['vnicId']
@@ -101,6 +104,8 @@ def main(writeSettingsFile, activeSettingsFile):
                 if interface['name'] != "mgmt":
                     example_config_vnics['vnic_name'] = vnic_name
                     example_config_vnics['bigip_name'] = interface['name']
+                    example_config_vnics['subnet_ocid'] = subnet_id
+                    vnic_list.append(example_config_vnics)
         for privateIP in private_ips:
             if privateIP.is_primary:
                 print("        Primary Private IP: " + privateIP.ip_address )
@@ -112,9 +117,29 @@ def main(writeSettingsFile, activeSettingsFile):
                 example_config_vnics['ip_to_move'].append(privateIP.id)
         if add_example_config == True:
             example_settings_json['vnics'].append(example_config_vnics)
+
+    if activeSettingsFileName != "":
+        active_settings_file = open(activeSettingsFileName, 'r')
+        active_settings = json.load(active_settings_file)
+        active_settings_file.close()
+        print("Loaded Config File from Active device, building standby config...")
+        for active_vnic in active_settings['vnics']:
+            for current_vnic in vnic_list:
+                if active_vnic['subnet_ocid'] == current_vnic['subnet_ocid']:
+                    if active_vnic['bigip_name'] != current_vnic['bigip_name']:
+                        print("WARNING: Subnet mismatch found!  SubnetID: " + current_vnic['subnet_ocid'] + " found on different BIG-IP interfaces, Active Interface: " +  active_vnic['bigip_name'] + " Current Interface: " + current_vnic['bigip_name'])
+                    # TODO blah:
+                    current_vnic['ip_to_move'] = active_vnic['ip_to_move']
+                    example_settings_json['vnics'].append(current_vnic)
+                    #example_config_vnics['ip_to_move'].append(privateIP.id)
+                    print("Found matching Subnet VNIC in Loaded Config File from Active!")
+                    
+                    
     print("\nExample settings.json config:")
     print(json.dumps(example_settings_json,indent=4,sort_keys=True))
+
     if writeSettingsFile:
+        print("Writing out settings file...")
         settings_file_name = os.path.dirname(os.path.realpath(sys.argv[0])) + '/settings.json'
         os.rename(settings_file_name, settings_file_name+'.bak')
         settings_file = open(settings_file_name, 'w')
@@ -125,7 +150,7 @@ def main(writeSettingsFile, activeSettingsFile):
 
 # Get Instance Principal Token
 try:
-    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner(timeout=10)
 except Exception as e:
     print('Script failed to get OCI instance principal "signer" token with this error, check routing to ensure request leaves primary instance VNIC: ' + str(e))
     sys.exit(1)
@@ -133,7 +158,7 @@ except Exception as e:
 # Call Main
 if __name__ == '__main__':
     writeSettingsFile = False
-    activeSettingsFile = ""
+    activeSettingsFileName = ""
     try:
         opts, args = getopt.getopt(sys.argv[1:],"hwa:",["writeSettings","activeSettingsFile"])
     except getopt.GetoptError:
@@ -152,5 +177,5 @@ if __name__ == '__main__':
         elif opt in ("-w", "--writeSettings"):
             writeSettingsFile = True
         elif opt in ("-a", "--activeSettingsFile"):
-            activeSettingsFile = arg
-    main(writeSettingsFile, activeSettingsFile)
+            activeSettingsFileName = arg
+    main(writeSettingsFile, activeSettingsFileName)

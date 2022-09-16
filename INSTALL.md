@@ -10,15 +10,31 @@ tmsh create sys management-route oci-169.254.0.0_16 { network 169.254.0.0/16 gat
 tmsh modify sys db failover.selinuxallowscripts value enable
 tmsh save sys config
 cd /config/failover/
-curl -L -o oci-f5-failover_v1.4.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
-tar -xzf oci-f5-failover_v1.4.tar.gz
+curl -L -o oci-f5-failover_v1.5.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.5.tar.gz
+tar -xzf oci-f5-failover_v1.5.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
 reboot
 cd /config/failover/f5-vip/
-./run-discovery.sh --install
+./run-discovery.sh -w
+scp settings.json <standby-bigip>:/config/failover/f5-vip/settings.active.json
 ```
-NOTE: After you finish these steps, you do need to configure the settings.json file.
+
+On the Standby device:
+```
+tmsh modify sys db config.allow.rfc3927  { value enable }
+tmsh create sys management-route oci-169.254.0.0_16 { network 169.254.0.0/16 gateway <management-gateway-ip> }
+tmsh modify sys db failover.selinuxallowscripts value enable
+tmsh save sys config
+cd /config/failover/
+curl -L -o oci-f5-failover_v1.5.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.5.tar.gz
+tar -xzf oci-f5-failover_v1.5.tar.gz
+restorecon -vr /config/failover
+chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
+reboot
+cd /config/failover/f5-vip/
+./run-discovery.sh -a settings.active.json -w
+```
 
 ## Full Install Instructions
 
@@ -49,8 +65,8 @@ reboot
 Download the tarball that contains the venv & failover scripts to the BIG-IP, then extract the tarball and restore selinux permissions on the failover files.
 ```
 cd /config/failover/
-curl -L -o oci-f5-failover_v1.4.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
-tar -xzf oci-f5-failover_v1.4.tar.gz
+curl -L -o oci-f5-failover_v1.5.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.5.tar.gz
+tar -xzf oci-f5-failover_v1.5.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
 vi /config/failover/f5-vip/settings.json
