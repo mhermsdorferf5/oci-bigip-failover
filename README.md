@@ -6,7 +6,6 @@ Note, this is for OCI failover with Instance Principals, for standard OCI failov
     * Updated script has since been modified by F5 to support additional functionality, such as multiple VNICs.
     * Updated script uses a rather large python environment with OCI libraries to interact with API using instance principal authentication.
     * You can find [detailed install instructions here](INSTALL.md).
-    * Can be downloaded from here: https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
 * Standard OCI failover scripts & instructions:
     * Code: https://github.com/f5devcentral/f5-oci-failover
     * Instructions: https://clouddocs.f5.com/cloud/public/v1/oracle/oracle_deploy.html#oci-ha
