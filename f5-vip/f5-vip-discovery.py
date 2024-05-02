@@ -9,6 +9,8 @@
 # 1.1: m.hermsdorfer@f5.com - 23-Mar-2022: added example settings.json
 # 1.2: m.hermsdorfer@f5.com - 25-Mar-2022: added ability to write out settings.json with -w argument.
 # 1.3: m.hermsdorfer@f5.com - 25-Mar-2022: added ability consume active settings.json with -a argument, in order to build standby settings.json.
+# 1.5: m.hermsdorfer@f5.com - 16-Sep-2022: fixed various bugs around discovery script.
+# 1.6: 02-May-2024 - m.hermsdorfer@f5.com - Add delay to tgrefresh for active-active resolution.
 # =====================================
 import requests
 import json

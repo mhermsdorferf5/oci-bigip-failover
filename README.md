@@ -25,20 +25,6 @@ Note, this is for OCI failover with Instance Principals, for standard OCI failov
 
 ## Install Instructions
 You can find [detailed install instructions here](INSTALL.md).
-Here's the short list of commands to run, if you don't particularly care for an explication around what they do:
-```
-tmsh modify sys db config.allow.rfc3927  { value enable }
-tmsh create sys management-route oci-169.254.0.0_16 { network 169.254.0.0/16 gateway <management-gateway-ip> }
-tmsh modify sys db failover.selinuxallowscripts value enable
-tmsh save sys config
-cd /config/failover/
-curl -L -o oci-f5-failover_v1.4.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.4.tar.gz
-tar -xzf oci-f5-failover_v1.4.tar.gz
-restorecon -vr /config/failover
-chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
-reboot
-```
-NOTE: After you finish these steps, you do need to configure the settings.json file.
 
 ## Troubleshooting:
 * Instance Principal authentication only works if the API call is coming from the primary vnic of the instance.

@@ -5,13 +5,14 @@ Note, this is for OCI failover with Instance Principals, for standard OCI failov
 ## TLDR Summary
 Here's the short list of commands to run, if you don't particularly care for an explication around what they do:
 ```
-tmsh modify sys db config.allow.rfc3927  { value enable }
-tmsh create sys management-route oci-169.254.0.0_16 { network 169.254.0.0/16 gateway <management-gateway-ip> }
-tmsh modify sys db failover.selinuxallowscripts value enable
-tmsh save sys config
+tmsh modify /sys db config.allow.rfc3927  { value enable }
+tmsh create /sys management-route oci-169.254.0.0_16 { network 169.254.0.0/16 gateway <management-gateway-ip> }
+tmsh modify /sys db failover.selinuxallowscripts value enable
+tmsh modify /sys db failover.nettimeoutsec value 60
+tmsh save /sys config
 cd /config/failover/
-curl -L -o oci-f5-failover_v1.5.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.5.tar.gz
-tar -xzf oci-f5-failover_v1.5.tar.gz
+curl -L -o oci-f5-failover_v1.6.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.6.tar.gz
+tar -xzf oci-f5-failover_v1.6.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
 reboot
@@ -25,10 +26,11 @@ On the Standby device:
 tmsh modify sys db config.allow.rfc3927  { value enable }
 tmsh create sys management-route oci-169.254.0.0_16 { network 169.254.0.0/16 gateway <management-gateway-ip> }
 tmsh modify sys db failover.selinuxallowscripts value enable
+tmsh modify /sys db failover.nettimeoutsec value 60
 tmsh save sys config
 cd /config/failover/
-curl -L -o oci-f5-failover_v1.5.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.5.tar.gz
-tar -xzf oci-f5-failover_v1.5.tar.gz
+curl -L -o oci-f5-failover_v1.6.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.6.tar.gz
+tar -xzf oci-f5-failover_v1.6.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
 reboot
@@ -61,12 +63,23 @@ tmsh save sys config
 reboot
 ```
 
+### Modify network failover timeout to 60 seconds:
+* OCI network maintenance will discard traffic between OCI Availability Domains.
+* OCI hasn't publicly said what their SLA is for this, however we've seen outages as long as 30 seconds, and our informal understanding is they can last as long as 60 seconds.
+* This does delay failover in the case of a real outage, but it prevents a split brain active-active situation from happening every time OCI network maintenance drops traffic between availability domains.
+* See: https://my.f5.com/manage/s/article/K7249
+```
+tmsh modify /sys db failover.nettimeoutsec value 60
+tmsh save sys config
+reboot
+```
+
 ### Failover Script Install:
 Download the tarball that contains the venv & failover scripts to the BIG-IP, then extract the tarball and restore selinux permissions on the failover files.
 ```
 cd /config/failover/
-curl -L -o oci-f5-failover_v1.5.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.5.tar.gz
-tar -xzf oci-f5-failover_v1.5.tar.gz
+curl -L -o oci-f5-failover_v1.6.tar.gz https://github.com/mhermsdorferf5/oci-bigip-failover/raw/main/release-artifacts/oci-f5-failover_v1.6.tar.gz
+tar -xzf oci-f5-failover_v1.6.tar.gz
 restorecon -vr /config/failover
 chmod 755 /config/failover/tgactive /config/failover/tgrefresh /config/failover/tgstandby
 vi /config/failover/f5-vip/settings.json

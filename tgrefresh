@@ -10,5 +10,12 @@
 # - Refer to /usr/lib/failover/f5tgrefresh for more information
 #
 
+
+
+# Add delay when resolving active-active situations.
+# This allows a script on the previously active now standby unit to
+# finish running, before we start tryign to take the IPs back.
+sleep 45
+
 source /config/failover/f5-vip/venv/bin/activate
 python /config/failover/f5-vip/f5-vip.py

@@ -9,6 +9,7 @@
 # 1.3: 03-Nov-2021 - m.hermsdorfer@f5.com - Removed exits causing script to bail prior to all vnics, cleaned up logging a bit.
 # 1.4: 23-Mar-2022 - m.hermsdorfer@f5.com - Additional cleanup, improved logging, etc.
 # 1.5: 16-Sep-2022 - m.hermsdorfer@f5.com - fixed various bugs around discovery script.
+# 1.6: 02-May-2024 - m.hermsdorfer@f5.com - Add delay to tgrefresh for active-active resolution.
 # =====================================
 from datetime import datetime
 import json

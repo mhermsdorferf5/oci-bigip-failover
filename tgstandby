@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# NOTE:
+# This file will be installed in /config/failover/tgstandby and it will
+# be called by /usr/lib/failover/f5tgstandby
+#
+# - This file is for customer additions for tasks
+#   to be performed when failover goes to standby state
+#
+# - Refer to /usr/lib/failover/f5tgstandby for more information
+#
+#
+
+# Upon going standby, kill any running instance of f5-vip.py
+# This should prevent a conflict of f5-vip.py script running
+# on both active/standby at the resolution of an active/active
+# split brian situation.
+pkill -f f5-vip.py
