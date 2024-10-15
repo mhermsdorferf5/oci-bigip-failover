@@ -1,5 +1,7 @@
 # Instructions for building the Python venv
 
+You only need to do this if you're interested in creating your own python venv, the release artifact tarballs already include a python venv.
+
 ## Description
 Because we don't wnt to install Python modules on F5, we need to create a Virtual Environment that uses **Python 2.7** (this is the Python version included on F5) and the **oci** module.
 
