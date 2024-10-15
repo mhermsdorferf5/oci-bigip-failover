@@ -10,7 +10,7 @@
 # - Refer to /usr/lib/failover/f5tgrefresh for more information
 #
 
-
+pkill -f f5-vip.py
 
 # Add delay when resolving active-active situations.
 # This allows a script on the previously active now standby unit to
